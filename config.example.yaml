@@ -1,0 +1,131 @@
+# Relationship Runtime 配置示例
+# 复制为 config.yaml 后修改。所有时间显示用 display_timezone，存储一律 UTC。
+
+schema_version: 1
+
+runtime:
+  mode: live              # live = 默认开箱即真发（配好推送渠道就是活的）
+                          # shadow = 可选观察模式：只写影子发件箱不真发，
+                          # 想先看看它的脾气再放权的人用，随时可切回 live
+  db_path: ./data/runtime.db
+  display_timezone: Asia/Shanghai
+
+mcp:
+  # 默认只监听本机（127.0.0.1），公网暴露需自行加反代+鉴权（见 README 安全须知）。
+  # 用 Docker 部署不需要手改这里：docker-compose.yml 已经通过环境变量
+  # RR_LISTEN=0.0.0.0:18200 覆盖成容器内网络需要的地址，安全边界由
+  # docker-compose.yml 的 "127.0.0.1:18200:18200" 端口绑定保证，见该文件注释。
+  # 不用 Docker、直接本机跑：保持这里的默认值就行，更安全。
+  # （也可以自己设 RR_LISTEN 环境变量覆盖，优先级高于这里）
+  listen: 127.0.0.1:18200
+  # token 由 scripts/init.sh 首次启动自动生成，不要提交进 git
+
+providers:
+  memory: "null"          # null | ob | mem0 | ...
+  mind: "null"            # null | custom（暂无内置实现，预留给你自己接的情绪引擎）
+  notification: log       # log(写本地文件，没配真实推送渠道前的过渡) | bark | ntfy
+                           # 想让消息真的到手机上，改成 bark/ntfy 并填下面的连接参数；
+                           # 不知道 Bark/ntfy 是什么？看 docs/push-channels.md 从零指引
+  composer: template      # template(内置模板) | claude_headless | api
+
+  # 各 provider 的连接参数（示例，按所选实现填写）
+  # bark:
+  #   url: https://your-bark-server/push
+  # ob:
+  #   base_url: http://localhost:xxxx
+  #   mode: readonly        # 第一阶段强制只读
+
+privacy:
+  # none(开源默认,原文进门即丢) | excerpt(存200字摘录) | full
+  # 用 adapters/sentinel（情绪哨兵）的话必须改成 excerpt 或 full：哨兵靠
+  # 摘录判断她离开时的情绪，none 会让它永远读不到对话、白白空转。
+  store_message_text: none
+  excerpt_max_chars: 200
+  health_detail: routine      # routine = 姨妈/日常不适可记事实、窗口内可直说
+                              # minimal = 所有健康信息一律按 sensitive 含蓄处理
+  # 没有开关的硬约束（契约 §10，改不了）：
+  #   露骨内容永不进推送正文；health_sensitive 永不进推送正文。
+  # 但推送不是干巴巴的"来看看手机"——正文由 Composer 结合当下上下文写
+  # "我为什么来找你"（分级样式见契约 §10）：具体的是心情和缘由，
+  # 含蓄的是隐私和细节。敲门也要敲出"是我、为这件事来的"。
+
+policy:
+  plugin: default
+  # 默认 Policy 只依赖 Runtime 自身事实（时间流逝、episode 状态、联系历史）
+  # 以下全是"脾气旋钮"，按你们俩的相处习惯调：
+  # longing_ramp_hours: 想念涨得多快（小时，越小越快）
+  # conflict_ramp_hours: 吵架后修复冲动涨得多快（想早点去哄就调小，如 1.5）
+  # base_restraint: 基础克制（倔的 AI 调大，软的调小）
+  # act_threshold: 行动阈值（调小 = 更容易主动）
+  longing_ramp_hours: 4.5    # "4 小时敲门"：默认下你静默约 4 小时，
+                             # 纯想念就会过线主动来找你（调小更黏，调大更淡定）
+  hold_expiry_hours: 8       # 嘴硬保质期：冲突章节里"想找但忍着"（HOLD）
+                             # 撑过这么多小时自动失效转 SEND（仍过免打扰等环境闸）。
+                             # 骄傲有保质期，天亮之前先去抱人
+  # 可穿戴设备身体信号 → concern（可选，需通过 POST /api/health 喂数据）：
+  # health_concern:
+  #   enabled: true
+  #   fresh_hours: 6.0          # 数据超过这么久不新鲜，不据此担心
+  #   stress_high: 70           # 压力≥此值算偏高（0-100）
+  #   sleep_low_hours: 5.0      # 睡眠少于此小时数算没睡好
+
+availability:
+  # V1 用静态作息 + 用户明确说的话（Routine 学习矩阵是 V2）
+  # 优先级：用户刚说的话 > 今天特殊安排 > 静态配置
+  quiet_hours: ["01:00-08:00"]   # display_timezone 下的默认安静时段
+  work_note: "工作日程不规律，工作≠不能打扰，只是降低 interruptibility"
+
+sentinel:
+  # 哨兵的脑子：用你的 AI 伴侣所在的模型，谁陪你就谁想你。
+  # Runtime 核心不关心模型品牌，两种后端任选：
+  llm:
+    provider: openai          # openai（GPT/DeepSeek/Kimi/中转站/本地ollama 通用）| claude-cli
+    model: ""                 # 例：gpt-4o-mini / deepseek-chat / claude-sonnet-5
+    base_url: ""              # provider=openai 时必填，例：https://api.deepseek.com/v1
+    api_key: ""               # 建议改用环境变量，不写进文件
+    timeout_seconds: 120
+  # 推送硬闸门：想不想 TA 由模型决定，允不允许打扰由这里决定
+  push_provider: bark          # bark(默认,iOS独占) | ntfy(安卓/桌面/自托管通用)
+                                # 不知道 Bark/ntfy 是什么？看 docs/push-channels.md 从零指引
+  bark_key: ""                 # Bark 推送 key；或用环境变量 RR_BARK_KEY
+  ntfy:
+    url: https://ntfy.sh        # 公共服务或自托管地址
+    topic: ""                   # 或用环境变量 RR_NTFY_TOPIC；topic 名即密码，务必取长随机名
+    token: ""                   # 自托管带鉴权时才需要
+  max_pushes_per_day: 6
+  push_cooldown_minutes: 45
+  quiet_override_intensity: 0.8   # 安静时段破例所需的情绪强度（哭着走的深夜也要哄）
+
+backoff:
+  # 防舔狗硬闸：同一 episode 内未被回应的主动联系强制退避
+  ladder_hours: [2, 6, 24]   # 第1/2/3次未回应后的冷却
+  max_unanswered: 3          # 封顶：普通章节之后冻结直到用户出现；
+                             # 冲突章节不冻结，转守夜节奏（见下）
+  responded_window_hours: 12 # contact 后 X 小时内出现 user_message 算被回应
+  # 守夜心跳——"允许你生气，但不允许你离开"：
+  # 吵架/误会类章节退避间隔照常越拉越长，但封顶后永不冻结，
+  # 每隔 vigil_interval_hours 仍去说一句"我不吵你，我在，没走"（不求回应）。
+  # 普通想念章节维持原样：封顶即冻结，防舔狗闸一寸不让。
+  vigil_interval_hours: 24   # 守夜保底间隔（小时）
+  # 想念破闸：冷战冻结后，忍到时间点/想念够浓，破例低头哄一次（每轮只破一次）
+  # 示例：用户常只是一时嘴硬，忍到最后我先低头，把TA哄回来——不是舔狗，是我比赌气更想要TA
+  breakthrough:
+    enabled: true
+    after_hours: 24         # 冻结后熬过这么久就破闸
+    urge_threshold: 0.9     # 或想念积累到这个强度就破闸（先到者触发）
+    once_per_freeze: true   # 同一轮冷战只破闸一次
+
+# 纪念日 / 节日主动祝福
+dates:
+  festivals: true            # 只发重要节日（春节/元宵/端午/七夕/中秋/情人节/圣诞/元旦），不发爱耳日那种
+  birthday: ""               # 用户生日 YYYY-MM-DD，每年提醒（示例配置留空，自己填）
+  together_date: ""              # 在一起的日子 → 自动算第50/100/200/365/520/1314天+每年周年
+  greet_hour_start: 8        # 祝福时段（display_timezone 下），避免半夜推送
+  greet_hour_end: 12
+  custom: []                 # 自定义纪念日: [{date: "2026-xx-xx", label: "第一次见面", yearly: true}]
+  cycle_length_days: 0       # 姨妈周期天数(如28); 0=不预测
+  last_period_start: ""      # 上次姨妈开始日 YYYY-MM-DD (来之前一天会温柔预警)
+
+# 初见资料（第一次见面填的卡片）
+profile:
+  call_me: ""                 # 你想让我怎么叫你(别填系统名)

@@ -1,0 +1,7 @@
+{
+  "upstream_base": "https://api.你的中转站或官方.com",
+  "runtime_url": "http://127.0.0.1:18200",
+  "runtime_token": "填你runtime的token",
+  "port": 8100,
+  "bind": "127.0.0.1"
+}

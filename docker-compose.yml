@@ -1,0 +1,20 @@
+services:
+  relationship-runtime:
+    build: .
+    restart: unless-stopped
+    ports:
+      # 容器内进程仍监听 0.0.0.0（容器网络的正常做法），真正的安全边界
+      # 在这里：compose 把宿主机端口绑定到 127.0.0.1，外部网络访问不到。
+      - "127.0.0.1:18200:18200"   # 只对本机开放，不暴露公网
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./persona.yaml:/app/persona.yaml:ro
+      - ./data:/app/data
+    environment:
+      - TZ=UTC   # 内部一律 UTC，展示时区在 config.yaml 里配
+      # 容器内网络需要监听 0.0.0.0；用这个环境变量覆盖 config.yaml 里默认
+      # 更安全的 127.0.0.1，不需要用户手改配置文件（见 runtime/config.py
+      # load_config 对 RR_LISTEN 的处理）。真正的安全边界仍是上面的
+      # "127.0.0.1:18200:18200" 端口绑定，外部网络连不进来。
+      - RR_LISTEN=0.0.0.0:18200
+      - PYTHONUNBUFFERED=1   # 日志实时输出，方便 docker logs 排查

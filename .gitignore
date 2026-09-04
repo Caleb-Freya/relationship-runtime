@@ -1,0 +1,13 @@
+data/
+config.yaml
+persona.yaml
+profile.yaml
+adapters/transparent-proxy/proxy-config.json
+.env
+*.key
+logs/
+*.log
+*.db
+__pycache__/
+*.pyc
+.venv/

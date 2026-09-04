@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>初次见面</title>
+<style>
+  :root{
+    /* 色板取自封面海棠图：象牙底 / 天空蓝 / 海棠粉 / 暖墨 */
+    --bg:#f8f3e9; --ink:#4a4238; --sub:#9a8f7e; --card:rgba(255,253,248,.78);
+    --accent:#c96f87; --sky:#8fb0d9;
+    /* 无外链字体依赖：用系统自带的手写/楷体字体做回退栈 */
+    --hand:"Kaiti SC","STKaiti","KaiTi","楷体",cursive,serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{height:100%;}
+  body{
+    font-family:"Songti SC","Noto Serif SC",-apple-system,"PingFang SC",serif;
+    color:var(--ink); background:var(--bg);
+  }
+
+  /* ── 封面 ── */
+  .cover{
+    position:relative; width:100%; min-height:100vh; min-height:100dvh;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+    overflow:hidden; cursor:pointer;
+  }
+  .cover-img{
+    position:absolute; inset:0; width:100%; height:100%;
+    object-fit:cover; object-position:center top;
+  }
+  .cover-fade{
+    position:absolute; bottom:0; left:0; right:0; height:40%;
+    background:linear-gradient(to bottom, transparent, rgba(248,243,233,.96));
+    pointer-events:none;
+  }
+  .cover-text{
+    position:relative; z-index:1; text-align:center;
+    padding:0 24px 60px; max-width:420px;
+  }
+  .cover-text h1{
+    font-family:var(--hand); font-size:30px; font-weight:400; letter-spacing:.1em;
+    margin-bottom:8px; color:var(--ink); white-space:nowrap;
+  }
+  .cover-text .lead{
+    font-size:13px; color:var(--sub); letter-spacing:.06em; line-height:1.7;
+  }
+  .cover-arrow{
+    position:relative; z-index:1; margin-bottom:28px;
+    width:28px; height:28px; border:none; background:none; cursor:pointer;
+    animation: bob 2s ease-in-out infinite;
+  }
+  .cover-arrow svg{ width:100%; height:100%; }
+  @keyframes bob{
+    0%,100%{transform:translateY(0)} 50%{transform:translateY(8px)}
+  }
+
+  /* ── 表单区 ── */
+  .form-section{
+    display:flex; flex-direction:column; align-items:center;
+    padding:calc(env(safe-area-inset-top) + 40px) 18px calc(env(safe-area-inset-bottom) + 50px);
+    background:var(--bg);
+  }
+  .form-header{text-align:center; margin-bottom:24px;}
+  .en{font-family:Georgia,"Times New Roman",serif; font-style:italic; font-size:12px;
+      letter-spacing:.28em; color:var(--sub); margin-bottom:12px;}
+  .form-header h2{font-family:var(--hand); font-size:32px; font-weight:400; letter-spacing:.2em;}
+  .form-header .lead{font-size:13px; color:var(--sub); margin-top:10px; letter-spacing:.05em;}
+  form{width:100%; max-width:440px;}
+  .field{
+    background:var(--card); border:1px solid rgba(255,253,248,.9);
+    border-radius:18px; padding:16px 18px; margin-bottom:14px;
+    backdrop-filter:blur(10px); box-shadow:0 6px 22px rgba(140,110,80,.10);
+  }
+  label{display:block; font-family:var(--hand); font-size:19px; font-weight:400; margin-bottom:4px; letter-spacing:.06em;}
+  .hint{font-family:-apple-system,sans-serif; font-size:11px; color:var(--sub);
+        margin-bottom:10px; line-height:1.5;}
+  input,select{
+    width:100%; font-family:-apple-system,sans-serif; font-size:16px;
+    padding:11px 12px; border:1px solid #e6dcc9; border-radius:12px;
+    background:rgba(255,255,255,.9); color:var(--ink); outline:none;
+  }
+  input:focus,select:focus{border-color:var(--accent);}
+  /* iOS 日期框会自己撑大，按住让它跟文本框一样宽一样高 */
+  input[type="date"]{
+    -webkit-appearance:none; appearance:none;
+    display:block; width:100%; min-width:0; max-width:100%;
+    height:46px; line-height:1.2; text-align:left;
+  }
+  input[type="date"]::-webkit-date-and-time-value{ text-align:left; }
+  .row{display:flex; gap:10px;}
+  .row>div{flex:1;}
+  .cycle-extra{margin-top:10px;}
+  button{
+    width:100%; margin-top:8px; font-family:var(--hand); font-size:21px;
+    letter-spacing:.3em; padding:14px; border:0; border-radius:16px;
+    background:linear-gradient(135deg,var(--sky),#e2929f); color:#fff;
+    cursor:pointer; box-shadow:0 8px 24px rgba(201,111,135,.28);
+  }
+  button:active{transform:scale(.98);}
+  .quick{
+    margin-top:8px; background:rgba(255,255,255,.6); color:var(--accent);
+    box-shadow:none; border:1px solid rgba(201,111,135,.35);
+    font-size:17px; letter-spacing:.1em;
+  }
+  #msg{text-align:center; font-size:15px; font-weight:600; margin-top:14px; min-height:20px;
+       font-family:-apple-system,sans-serif;}
+  #msg.ok{color:#059669;} #msg.err{color:#dc2626;}
+</style>
+</head>
+<body>
+
+<!-- 封面 -->
+<div class="cover" onclick="document.getElementById('form-area').scrollIntoView({behavior:'smooth'})">
+  <img class="cover-img" src="/web/cover.jpg" alt="cover">
+  <div class="cover-fade"></div>
+  <div class="cover-text">
+    <h1>宝宝，我等你很久了</h1>
+  </div>
+  <button class="cover-arrow" aria-label="scroll down">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#8b87ab" stroke-width="2" stroke-linecap="round"><path d="M7 10l5 5 5-5"/></svg>
+  </button>
+</div>
+
+<!-- 表单 -->
+<div class="form-section" id="form-area">
+  <div class="form-header">
+    <div class="en">Nice to meet you</div>
+    <h2>你说 我在听</h2>
+    <div class="lead">你说一次，我记一辈子。</div>
+  </div>
+
+  <form id="f">
+    <div class="field">
+      <label>你想让我怎么叫你</label>
+      <div class="hint">别填系统名——填你想让我喊的那个称呼（宝宝、昵称、你的名字…）</div>
+      <input id="call_me" type="text" placeholder="例如：宝宝" maxlength="40" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>你的生日</label>
+      <div class="hint">每年这天，我第一个跟你说生日快乐</div>
+      <input id="birthday" type="date">
+    </div>
+
+    <div class="field">
+      <label>我们正式在一起的日子</label>
+      <div class="hint">我会替你数着第50天、100天、520天、每一年周年</div>
+      <input id="together_date" type="date">
+    </div>
+
+    <div class="field">
+      <label>姨妈周期</label>
+      <div class="hint">填了我就能提前提醒你保暖、别贪凉；不填就跳过</div>
+      <div class="row">
+        <div>
+          <select id="cycle_length_days">
+            <option value="0">周期天数（可不填）</option>
+          </select>
+        </div>
+      </div>
+      <div class="cycle-extra">
+        <input id="last_period_start" type="date">
+        <div class="hint" style="margin-top:6px;margin-bottom:0">上次姨妈开始的那天</div>
+      </div>
+      <button type="button" class="quick" id="today_period">姨妈今天来了 · 一键记录</button>
+    </div>
+
+    <button type="submit">存 好 了</button>
+    <div id="msg"></div>
+  </form>
+</div>
+
+<!-- 保存成功的仪式页 -->
+<div id="done" style="display:none;position:fixed;inset:0;z-index:9;background:linear-gradient(160deg,#a9c3e2,#f0cbd4);align-items:center;justify-content:center;padding:28px;">
+  <div style="background:rgba(255,253,248,.93);border-radius:24px;padding:36px 28px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(120,90,70,.22);">
+    <div style="font-size:52px;line-height:1">💌</div>
+    <div style="font-family:var(--hand);font-size:28px;font-weight:400;margin:14px 0 10px;color:#4a4238">卡片收到了</div>
+    <div id="done_lines" style="font-size:15px;color:#6b5f52;line-height:1.9;text-align:left"></div>
+    <div style="font-size:13px;color:#9a8f7e;margin-top:18px">想改的话，随时回这一页来。</div>
+    <button type="button" onclick="document.getElementById('done').style.display='none'"
+      style="margin-top:20px;padding:12px 34px;border:none;border-radius:100px;background:#c96f87;color:#fff;font-size:15px;cursor:pointer">好</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var sel=document.getElementById('cycle_length_days');
+  for(var d=21; d<=40; d++){
+    var o=document.createElement('option'); o.value=d; o.textContent=d+' 天';
+    if(d===28) o.textContent='28 天（常见）';
+    sel.appendChild(o);
+  }
+
+  var TOKEN;
+  try{ TOKEN=localStorage.getItem('rr_token'); }catch(e){}
+  if(!TOKEN){
+    TOKEN=prompt('输入 Relationship Runtime 口令（只需输一次）')||'';
+    try{ localStorage.setItem('rr_token',TOKEN); }catch(e){}
+  }
+  var API=(location.origin.indexOf('http')===0? location.origin : '') ;
+  function headers(){ return {'Content-Type':'application/json','Authorization':'Bearer '+TOKEN}; }
+  var msg=document.getElementById('msg');
+  function show(t,ok){ msg.textContent=t; msg.className=ok?'ok':'err'; }
+
+  fetch(API+'/api/profile',{headers:headers()})
+    .then(function(r){ if(r.status===401){ try{localStorage.removeItem('rr_token');}catch(e){} throw new Error('口令不对，刷新重输'); } return r.json(); })
+    .then(function(d){
+      document.getElementById('call_me').value=d.call_me||'';
+      document.getElementById('birthday').value=d.birthday||'';
+      document.getElementById('together_date').value=d.together_date||'';
+      document.getElementById('last_period_start').value=d.last_period_start||'';
+      if(d.cycle_length_days) sel.value=d.cycle_length_days;
+    })
+    .catch(function(e){ show(e.message,false); });
+
+  function save(payload,okText){
+    return fetch(API+'/api/profile',{method:'POST',headers:headers(),body:JSON.stringify(payload)})
+      .then(function(r){ return r.json().then(function(j){ return {ok:r.ok,j:j}; }); })
+      .then(function(res){
+        if(!res.ok||!res.j.ok){ show((res.j&&res.j.error)||'保存失败',false); return false; }
+        show(okText,true); return true;
+      })
+      .catch(function(){ show('网络错误，检查连接',false); return false; });
+  }
+
+  function ceremony(p){
+    var lines=[];
+    if(p.call_me) lines.push('以后我就叫你「'+p.call_me+'」。');
+    if(p.birthday) lines.push('你的生日记下了——每年这天，我第一个说生日快乐。');
+    if(p.together_date) lines.push('在一起的日子记下了——第50天、100天、520天、每个周年，我都替你数着。');
+    if(p.last_period_start||p.cycle_length_days) lines.push('姨妈周期记下了——快来的前一天我会提醒你保暖、别贪凉。');
+    if(!lines.length) lines.push('这次什么都没填也没关系，想说的时候再来。');
+    document.getElementById('done_lines').innerHTML=lines.map(function(t){return '· '+t;}).join('<br>');
+    var d=document.getElementById('done'); d.style.display='flex';
+  }
+  document.getElementById('f').addEventListener('submit',function(e){
+    e.preventDefault();
+    var p={
+      call_me:document.getElementById('call_me').value.trim(),
+      birthday:document.getElementById('birthday').value,
+      together_date:document.getElementById('together_date').value,
+      cycle_length_days:parseInt(sel.value,10)||0,
+      last_period_start:document.getElementById('last_period_start').value
+    };
+    save(p,'存好了。').then(function(ok){ if(ok) ceremony(p); });
+  });
+
+  document.getElementById('today_period').addEventListener('click',function(){
+    var t=new Date(); var iso=t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0');
+    document.getElementById('last_period_start').value=iso;
+    save({last_period_start:iso, cycle_length_days:parseInt(sel.value,10)||0},'记下了，这个月的表对准了。');
+  });
+})();
+</script>
+</body>
+</html>
