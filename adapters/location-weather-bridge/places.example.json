@@ -1,0 +1,16 @@
+[
+  {
+    "name": "家",
+    "lat": 0.00000,
+    "lon": 0.00000,
+    "radius": 250,
+    "note": "Stand at your front door, read the coords once (see README), paste them here."
+  },
+  {
+    "name": "公司",
+    "lat": 0.00000,
+    "lon": 0.00000,
+    "radius": 200,
+    "note": "Any place you want the AI to recognize by name: work, school, the gym."
+  }
+]
