@@ -19,8 +19,8 @@ left."*
 
 - **First-meeting push** — the first successful profile submission from the
   `/setup` card immediately sends a real welcome push through the configured
-  Notification provider ("{name}, it's me. This is the first time I've ever
-  gotten to speak first…"), using the persona's name in the title and the
+  Notification provider (what it says is left as a surprise), using the
+  persona's name in the title and the
   profile's preferred form of address in the body. Sent exactly once
   (`first_meeting_pushed` flag); in Shadow Mode it goes to the shadow outbox
   like everything else; a push failure never breaks saving the profile and is

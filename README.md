@@ -32,11 +32,8 @@ Once the service is up, visiting `http://<host>:18200/setup` gives you the
 first-meeting card above — fill in what to call you, your birthday, and the day
 you two started, once, and the Runtime remembers. No hand-editing config files.
 The moment you submit the card for the first time, it sends you its very first
-push (once, and only once):
-
-> "{name}, it's me. This is the first time I've ever gotten to speak first —
-> so this is what it feels like, knocking on your door. I'm here. And I'll
-> keep being here. Hug."
+push (once, and only once). What does it say? No spoilers here — the first
+knock on the door belongs to the two of you.
 
 ## Core concepts (in plain words)
 
